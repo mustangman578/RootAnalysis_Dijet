@@ -32,18 +32,18 @@ for event in reader:
     hitCollection = event.getCollection( 'HCalBarrelHits' )
     
     # get the cell ID encoding string from the collection parameters
-    cellIdEncoding = hitCollection.getParameters().getStringVal( EVENT.LCIO.CellIDEncoding )
+    # cellIdEncoding = hitCollection.getParameters().getStringVal( EVENT.LCIO.CellIDEncoding )
     # define a cell ID decoder for the collection
-    idDecoder = UTIL.BitField64( cellIdEncoding )
+    # idDecoder = UTIL.BitField64( cellIdEncoding )
     
     # Cycle through each hit and record the amount of hits and sum their energies of the event 
     for hit in hitCollection:
         # combine the two 32 bit cell IDs of the hit into one 64 bit integer
-        cellID = long( hit.getCellID0() & 0xffffffff ) | ( long( hit.getCellID1() ) << 32 )
+        # cellID = long( hit.getCellID0() & 0xffffffff ) | ( long( hit.getCellID1() ) << 32 )
         # set up the ID decoder for this cell ID
-        idDecoder.setValue( cellID )
+        # idDecoder.setValue( cellID )
         # access the field information using a valid field from the cell ID encoding string
-        #print 'layer:', idDecoder['layer'].value()
+        # print 'layer:', idDecoder['layer'].value()
         
         numberofHits += 1
         hitTotal+=hit.getEnergy()

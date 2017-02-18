@@ -14,7 +14,7 @@ rootFile = TFile("sample.root","recreate")
 
 # create Histograms
 HitEnergyHistogram = TH1D( 'TotalDepositedEnergy', 'Event Energy Deposit;HCAL Barrel Hit Energy [GeV];Entries', 100, 0., 1.)
-HCalBarrelHitsvsLayer = TH1D("HitsvsLayer","Hits vs. Layer", 100, 0., 39.)
+HCalBarrelHitsvsLayer = TH1D("HitsvsLayer","Hits vs. Layer", 40, 0., 39.)
 NumberOfHitsPerEventHistogram = TH1D( 'HitsPerEvent', 'Hits Per Event for HCalBarrelHits;HCAL Barrel Hits;Events', 500, 0., 1300.)
 
 

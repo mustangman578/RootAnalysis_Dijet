@@ -42,7 +42,7 @@ for event in reader:
         cellID = long( hit.getCellID0() & 0xffffffff ) | ( long( hit.getCellID1() ) << 32 )
         # set up the ID decoder for this cell ID
         idDecoder.setValue( cellID )
-        # access the field information using a valid field from the cell ID encoding string
+        # access the field information using a valid field from the cell ID encoding string and fill histogram with layer info
         HCalBarrelHitsvsLayer.Fill(idDecoder['layer'].value())
         
         numberofHits += 1

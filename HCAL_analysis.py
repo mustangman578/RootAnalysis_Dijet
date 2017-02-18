@@ -14,7 +14,7 @@ rootFile = TFile("sample.root","recreate")
 
 # create Histograms
 HitEnergyHistogram = TH1D( 'TotalDepositedEnergy', 'Event Energy Deposit;HCAL Barrel Hit Energy [GeV];Entries', 100, 0., 1.)
-#HCalBarrelEnergyPerHit = TH1F("HCalBarrelEnergyPerHit","Total Energy per Hit",200,0,0.002)
+HCalBarrelHitsvsLayer = TH1D("HitsvsLayer","Hits vs. Layer", 100, 0., 39.)
 NumberOfHitsPerEventHistogram = TH1D( 'HitsPerEvent', 'Hits Per Event for HCalBarrelHits;HCAL Barrel Hits;Events', 500, 0., 1300.)
 
 
@@ -32,18 +32,18 @@ for event in reader:
     hitCollection = event.getCollection( 'HCalBarrelHits' )
     
     # get the cell ID encoding string from the collection parameters
-    # cellIdEncoding = hitCollection.getParameters().getStringVal( EVENT.LCIO.CellIDEncoding )
+    cellIdEncoding = hitCollection.getParameters().getStringVal( EVENT.LCIO.CellIDEncoding )
     # define a cell ID decoder for the collection
-    # idDecoder = UTIL.BitField64( cellIdEncoding )
+    idDecoder = UTIL.BitField64( cellIdEncoding )
     
     # Cycle through each hit and record the amount of hits and sum their energies of the event 
     for hit in hitCollection:
         # combine the two 32 bit cell IDs of the hit into one 64 bit integer
-        # cellID = long( hit.getCellID0() & 0xffffffff ) | ( long( hit.getCellID1() ) << 32 )
+        cellID = long( hit.getCellID0() & 0xffffffff ) | ( long( hit.getCellID1() ) << 32 )
         # set up the ID decoder for this cell ID
-        # idDecoder.setValue( cellID )
+        idDecoder.setValue( cellID )
         # access the field information using a valid field from the cell ID encoding string
-        # print 'layer:', idDecoder['layer'].value()
+        HCalBarrelHitsvsLayer.Fill(idDecoder['layer'].value())
         
         numberofHits += 1
         hitTotal+=hit.getEnergy()

@@ -14,7 +14,7 @@ rootFile = TFile("sample.root","recreate")
 
 # create Histograms
 HitEnergyHistogram = TH1D( 'TotalDepositedEnergy', 'Event Energy Deposit;HCAL Barrel Hit Energy [GeV];Entries', 100, 0., 1.)
-HCalBarrelHitsvsLayer = TH1D("HitsvsLayer","Hits vs. Layer", 40, 0., 39.)
+HCalBarrelHitsvsLayer = TH1D("HitsvsLayers","Hits vs. Layers", 40, 0., 39.)
 NumberOfHitsPerEventHistogram = TH1D( 'HitsPerEvent', 'Hits Per Event for HCalBarrelHits;HCAL Barrel Hits;Events', 500, 0., 1300.)
 
 
@@ -27,7 +27,7 @@ for event in reader:
     
     print "Collecting HCalBarrelHits and summing energies for event %s" % ( event.getEventNumber() )
     
-    hitTotal = 0
+    hitEnergyTotal = 0
     numberofHits = 0
     hitCollection = event.getCollection( 'HCalBarrelHits' )
     
@@ -46,7 +46,7 @@ for event in reader:
         HCalBarrelHitsvsLayer.Fill(idDecoder['layer'].value())
         
         numberofHits += 1
-        hitTotal+=hit.getEnergy()
+        hitEnergyTotal+=hit.getEnergy()
 
     # Fill the histograms 
     HitEnergyHistogram.Fill(hitTotal)

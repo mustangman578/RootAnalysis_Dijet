@@ -1,127 +1,154 @@
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# pyLCIO analysis for SiD calorimeters
+#
+# A. Myers, University of Texas, Arlington
+# March 2017 
+#
+# Input: Reconstructed .slcio file
+# Output: ROOT Histograms of the total energy deposited in each event, both for the entire calorimeter 
+#
+#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 print "Starting Analysis.  This may take a moment..."
 
-
 from pyLCIO import IOIMPL, EVENT,UTIL
-from pyLCIO.EVENT import DataNotAvailableException
 from pyLCIO.io.LcioReader import LcioReader
 from array import array
 from ROOT import *
 
-
 # Input File *change to slcio file that will analyized 
-slcioFile = '5GeV_65_pions_10000events_reco.slcio'
+slcioFile = '5GeV_65_pions_reco.slcio'
+outFile = "sample.root"
 
 # output root file *change sample.root to desired name
-rootFile = TFile("sample.root","recreate")
+rootFile = TFile(outFile,"recreate")
+
+HCAL_Barrel_Max_Layers = 40
+HCAL_Endcap_Max_Layers = 45
+
 
 # create Histograms
 HitEnergyHistogram = TH1D( 'TotalDepositedEnergy', 'Event Energy Deposit;Hit Energy [GeV];Entries', 100, 0., 1.)
-HitsvsLayerHistogram = TH1D("HitsvsLayers","Hits vs. Layers;Layers;HCAL Barrel Hits", 40, 0., 39.)
+HCalHitsvsLayerHistogram_Barrel = TProfile("HitsvsLayersBarrel","Hits vs. Layers Barrel;Layers;Hits", HCAL_Barrel_Max_Layers, 0., HCAL_Barrel_Max_Layers) 
+HCalHitsvsLayerHistogram_Endcap = TProfile("HitsvsLayersEndcap","Hits vs. Layers Endcap;Layers;Hits", HCAL_Endcap_Max_Layers, 0., HCAL_Endcap_Max_Layers)
 NumberOfHitsPerEventHistogram = TH1D( 'HitsPerEvent', 'Hits Per Event;Hits;Events', 400, 0., 1600.)
-HitEnergyHistogram_Digi_Reco = TH1D( 'TotalDepositedEnergyReco', 'Event Energy Deposit DigiReco;Hit Energy [GeV];Entries', 100, 0., 25.)
-
+HitEnergyHistogram_Reco = TH1D( 'TotalDepositedEnergyReco', 'Event Energy Deposit DigiReco;Hit Energy [GeV];Entries', 100, 0., 25.)
 
 # create a reader and open the slcio file)
 reader = IOIMPL.LCFactory.getInstance().createLCReader()
 reader.open(slcioFile)
-
-# loop over all events in the file
+ 
 for event in reader:
-    
     print "Collecting Hits in HCAL Barrel, HCAL End Cap, ECAL Barrel, ECAL End Cap and summing energies for event %s" % ( event.getEventNumber() )
-    
+
     hitEnergyTotal = 0
+    hitEnergyTotal_Reco = 0
     numberofHits = 0
-    hitEnergyTotal_Digi_Reco = 0
+    # Cycle through Reco collections and sum their energies
+    for Pre_Reco_CollectionName in ['HCalBarrelHits', 'HCalEndcapHits', 'ECalBarrelHits', 'ECalEndcapHits']:
 
-    #Get individual hit collections
-    HCALBarrelhitCollection = event.getCollection( 'HCalBarrelHits' )
-    HCALEndCaphitCollection = event.getCollection( 'HCalEndcapHits' )
-    ECALBarrelhitCollection = event.getCollection( 'ECalBarrelHits' )
-    ECALEndCaphitCollection = event.getCollection( 'ECalEndcapHits' )
+        if Pre_Reco_CollectionName == 'HCalBarrelHits':
     
-    # get the cell ID encoding string from the collection parameters
-    cellIdEncoding_HCALBarrel = HCALBarrelhitCollection.getParameters().getStringVal( EVENT.LCIO.CellIDEncoding )
-    cellIdEncoding_HCALEndCap = HCALEndCaphitCollection.getParameters().getStringVal( EVENT.LCIO.CellIDEncoding )
-    cellIdEncoding_ECALBarrel = ECALBarrelhitCollection.getParameters().getStringVal( EVENT.LCIO.CellIDEncoding )
-    cellIdEncoding_ECALEndCap = ECALEndCaphitCollection.getParameters().getStringVal( EVENT.LCIO.CellIDEncoding )
-    
-    # define a cell ID decoder for the collection
-    idDecoder_HCALBarrel = UTIL.BitField64( cellIdEncoding_HCALBarrel )
-    idDecoder_HCALEndCap = UTIL.BitField64( cellIdEncoding_HCALEndCap )
-    idDecoder_ECALBarrel = UTIL.BitField64( cellIdEncoding_ECALBarrel )
-    idDecoder_ECALEndCap = UTIL.BitField64( cellIdEncoding_ECALEndCap )
-    
-    
-    # Cycle through each hit in the collections and record the amount of hits and sum their energies of the event 
-    for hit in HCALBarrelhitCollection:
-        # combine the two 32 bit cell IDs of the hit into one 64 bit integer
-        cellID = long( hit.getCellID0() & 0xffffffff ) | ( long( hit.getCellID1() ) << 32 )
-        # set up the ID decoder for this cell ID
-        idDecoder_HCALBarrel.setValue( cellID )
-        # access the field information using a valid field from the cell ID encoding string and fill histogram with layer info
-        HitsvsLayerHistogram.Fill(idDecoder_HCALBarrel['layer'].value())
-        
-        numberofHits += 1
-        hitEnergyTotal+=hit.getEnergy()
+            collection = event.getCollection( Pre_Reco_CollectionName )
 
-    for hit in HCALEndCaphitCollection:
-        # combine the two 32 bit cell IDs of the hit into one 64 bit integer
-        cellID = long( hit.getCellID0() & 0xffffffff ) | ( long( hit.getCellID1() ) << 32 )
-        # set up the ID decoder for this cell ID
-        idDecoder_HCALEndCap.setValue( cellID )
-        # access the field information using a valid field from the cell ID encoding string and fill histogram with layer info
-        HitsvsLayerHistogram.Fill(idDecoder_HCALEndCap['layer'].value())
-        
-        numberofHits += 1
-        hitEnergyTotal+=hit.getEnergy()
+            # get the cell ID encoding string from the collection parameters for HCAL
+            cellIdEncoding = collection.getParameters().getStringVal( EVENT.LCIO.CellIDEncoding )
+            # define a cell ID decoder for the collection
+            idDecoder = UTIL.BitField64( cellIdEncoding )
 
-    for hit in ECALBarrelhitCollection:
-        # combine the two 32 bit cell IDs of the hit into one 64 bit integer
-        cellID = long( hit.getCellID0() & 0xffffffff ) | ( long( hit.getCellID1() ) << 32 )
-        # set up the ID decoder for this cell ID
-        idDecoder_ECALBarrel.setValue( cellID )
-        # access the field information using a valid field from the cell ID encoding string and fill histogram with layer info
-        HitsvsLayerHistogram.Fill(idDecoder_ECALBarrel['layer'].value())
-        
-        numberofHits += 1
-        hitEnergyTotal+=hit.getEnergy()
+            #creat an array for the layer information
+            LayerHitArray = [0 for i in range (HCAL_Barrel_Max_Layers)]
 
-    for hit in ECALEndCaphitCollection:
-        # combine the two 32 bit cell IDs of the hit into one 64 bit integer
-        cellID = long( hit.getCellID0() & 0xffffffff ) | ( long( hit.getCellID1() ) << 32 )
-        # set up the ID decoder for this cell ID
-        idDecoder_ECALEndCap.setValue( cellID )
-        # access the field information using a valid field from the cell ID encoding string and fill histogram with layer info
-        HitsvsLayerHistogram.Fill(idDecoder_ECALEndCap['layer'].value())
-        
-        numberofHits += 1
-        hitEnergyTotal+=hit.getEnergy()
-        
-    # Cycle through Digi/Reco collections and sum their energies 
-    for CollectionName in ['ECalBarrelReco', 'ECalEndcapReco', 'HCalEndcapReco', 'HCalBarrelReco']:
-        try:
-            collection = event.getCollection( CollectionName )
             for hit in collection:
-                hitEnergyTotal_Digi_Reco+=hit.getEnergy()
+            
+                # combine the two 32 bit cell IDs of the hit into one 64 bit integer
+                cellID = long( hit.getCellID0() & 0xffffffff ) | ( long( hit.getCellID1() ) << 32 )
+
+                # set up the ID decoder for this cell ID
+                idDecoder.setValue( cellID )
+            
+                hitEnergyTotal+=hit.getEnergy()
+
+                numberofHits += 1
+                
+                # access the field information using a valid field from the cell ID encoding string
+                LayerHitArray[idDecoder['layer'].value()] += 1
+
+            for i in range(HCAL_Barrel_Max_Layers):
+                HCalHitsvsLayerHistogram_Barrel.Fill(i,LayerHitArray[i]) 
+            
+        elif Pre_Reco_CollectionName == 'HCalEndcapHits':
+            collection = event.getCollection( Pre_Reco_CollectionName )
+
+            # get the cell ID encoding string from the collection parameters for HCAL
+            cellIdEncoding = collection.getParameters().getStringVal( EVENT.LCIO.CellIDEncoding )
+            # define a cell ID decoder for the collection
+            idDecoder = UTIL.BitField64( cellIdEncoding )
+
+            #creat an array for the layer information
+            LayerHitArray = [0 for i in range (HCAL_Endcap_Max_Layers)]
+
+            for hit in collection:
+            
+                # combine the two 32 bit cell IDs of the hit into one 64 bit integer
+                cellID = long( hit.getCellID0() & 0xffffffff ) | ( long( hit.getCellID1() ) << 32 )
+
+                # set up the ID decoder for this cell ID
+                idDecoder.setValue( cellID )
+            
+                hitEnergyTotal+=hit.getEnergy()
+
+                numberofHits += 1
+                
+                # access the field information using a valid field from the cell ID encoding string
+                LayerHitArray[idDecoder['layer'].value()] += 1
+
+            for i in range(HCAL_Barrel_Max_Layers):
+                HCalHitsvsLayerHistogram_Endcap.Fill(i,LayerHitArray[i])
+        else:
+            if Pre_Reco_CollectionName == 'ECalBarrelHits' or 'ECalEndcapHits':
+
+                collection = event.getCollection( Pre_Reco_CollectionName )
+
+                for hit in collection:
+
+                    hitEnergyTotal+=hit.getEnergy()
+
+                    numberofHits += 1
+                
+            
+    # Cycle through Reco collections and sum their energies
+    for Reco_CollectionName in ['ECalBarrelReco', 'ECalEndcapReco', 'HCalEndcapReco', 'HCalBarrelReco']:
+        try:
+            collection = event.getCollection( Reco_CollectionName )
+            for hit in collection:
+                hitEnergyTotal_Reco+=hit.getEnergy()
         except:
             continue
-
+       
     # Fill the histograms 
     HitEnergyHistogram.Fill(hitEnergyTotal)
     NumberOfHitsPerEventHistogram.Fill(numberofHits)
-    HitEnergyHistogram_Digi_Reco.Fill(hitEnergyTotal_Digi_Reco)
+    HitEnergyHistogram_Reco.Fill(hitEnergyTotal_Reco)
+
 reader.close()
     
 # Fit histograms with Gaussian       ~ working on errors~
 #HitEnergyHistogram.Fit("gaus")
+#NumberOfHitsPerEventHistogram.Fit("gaus")
+#HitEnergyHistogram_Reco.Fit("gaus")
 
 # write and close the root file
 rootFile.Write()
 rootFile.Close()
 
-print "Root file created: "+str(rootFile)
+print "Root file created: "+str(outFile)
 
 
 
+    
+
+
+        
 

@@ -33,33 +33,34 @@ public:
   // this is a standard algorithm constructor
   MyxAODAnalysis (const std::string& name, ISvcLocator* pSvcLocator);
   // Destructor for Ntuples
-  ~MyxAODAnalysis();
+  //~MyxAODAnalysis();
   // GRL
   asg::AnaToolHandle<IGoodRunsListSelectionTool> m_grl; //!
   // Jet Cleaning
-  asg::AnaToolHandle<IJetSelector> m_jetCleaning; //!
+  //asg::AnaToolHandle<IJetSelector> m_jetCleaning; //!
   // JER
-  asg::AnaToolHandle<IJERTool> m_JERTool; //!
+  //asg::AnaToolHandle<IJERTool> m_JERTool; //!
 
   // Jet Calibration 
   asg::AnaToolHandle<IJetCalibrationTool> m_JetCalibrationTool_handle; //!
+  
 
   // Jet Vertex Tool 
   //asg::AnaToolHandle<IJetUpdateJvt> m_jvt; //!  //Working on this 
 
   //Dr. White Code JVT
-  JetVertexTaggerTool* pjvtag; //!
-  ToolHandle<IJetUpdateJvt> hjvtagup; //!
+  //JetVertexTaggerTool* pjvtag; //!
+  //ToolHandle<IJetUpdateJvt> hjvtagup; //!
 
 
   // Creating trees/Ntuples
   unsigned int m_runNumber = 0; ///< Run number for the current event
   unsigned long long m_eventNumber = 0; ///< Event number
    /// Jet 4-momentum variables 
-   std::vector<float> *m_jetEta = nullptr;
-   std::vector<float> *m_jetPhi = nullptr;
-   std::vector<float> *m_jetPt = nullptr;
-   std::vector<float> *m_jetE = nullptr;
+   //std::vector<float> *m_jetEta = nullptr;
+   //std::vector<float> *m_jetPhi = nullptr;
+   //std::vector<float> *m_jetPt = nullptr;
+   //std::vector<float> *m_jetE = nullptr;
 
   // these are the functions inherited from Algorithm
   virtual StatusCode initialize () override;
@@ -74,7 +75,7 @@ private:
   
   int total_grl; //!
   int event_number; //!
-  int Njets; //!
+  //int Njets; //!
   
 };
 

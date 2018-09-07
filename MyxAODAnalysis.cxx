@@ -71,7 +71,7 @@ StatusCode MyxAODAnalysis :: initialize ()
   //m_tree->Branch ("JetE", &m_jetE);
 
   // Jet Calibration initialize and configure
-  const std::string name = "MyxAODAnalysis"; //string describing the current thread, for logging //Testing 
+  //const std::string name = "MyxAODAnalysis"; //string describing the current thread, for logging //Testing 
   TString jetAlgo = "AntiKt4EMTopo";  // Jet collection, for example AntiKt4EMTopo or AntiKt4LCTopo (see below)
   // Config file WITH TG3 applied
   TString config = "JES_data2017_2016_2015_Recommendation_Feb2018_rel21.config";  // Global config (see below)
@@ -85,17 +85,17 @@ StatusCode MyxAODAnalysis :: initialize ()
   bool isData = true; // bool describing if the events are data or from simulation
 
 
-  //m_JetCalibrationTool_handle.setTypeAndName("JetCalibrationTool/name"); 
-  //if( !m_JetCalibrationTool_handle.isUserConfigured() ){
-    //ANA_CHECK( ASG_MAKE_ANA_TOOL(m_JetCalibrationTool_handle, name ) ); //<--- Was getting error with this line
+  m_JetCalibrationTool_handle.setTypeAndName("JetCalibrationTool/name"); 
+  if( !m_JetCalibrationTool_handle.isUserConfigured() ){
+    //ANA_CHECK(ASG_MAKE_ANA_TOOL(m_JetCalibrationTool_handle, JetCalibrationTool )); //<--- Was getting error with this line
     ANA_CHECK( m_JetCalibrationTool_handle.setProperty("JetCollection",jetAlgo.Data()) );
     ANA_CHECK( m_JetCalibrationTool_handle.setProperty("ConfigFile",config.Data()) );
     ANA_CHECK( m_JetCalibrationTool_handle.setProperty("CalibSequence",calibSeq.Data()) );
     ANA_CHECK( m_JetCalibrationTool_handle.setProperty("CalibArea",calibArea.Data()) );
     ANA_CHECK( m_JetCalibrationTool_handle.setProperty("IsData",isData) );
     ANA_CHECK( m_JetCalibrationTool_handle.initialize());
-    //ANA_CHECK( m_JetCalibrationTool_handle.retrieve());
-  //}
+    ANA_CHECK( m_JetCalibrationTool_handle.retrieve());
+  }
 
   // Jet Vertexing Tool Initialize (Need to work on this)
   //pjvtag = 0;
@@ -218,6 +218,10 @@ StatusCode MyxAODAnalysis :: execute ()
 
   // Create a transient object store. Needed for the tools.
   xAOD::TStore store;
+  //const xAOD::JetContainer * my_jets = 0;
+  //std::string jetCollectionName = "AntiKt4EMTopoJets";
+  //ANA_CHECK(evtStore()->retrieve( my_jets, jetCollectionName));
+
   //--------------
   // shallow copy 
   //--------------
@@ -226,15 +230,24 @@ StatusCode MyxAODAnalysis :: execute ()
   std::unique_ptr<xAOD::JetContainer> shallowJets (shallowCopy.first);
   std::unique_ptr<xAOD::ShallowAuxContainer> shallowAux (shallowCopy.second);
 
-//for (auto jetSC : *shallowCopy.first)
-//{
+  //for ( auto *ijet : *my_jets ) {
+    //xAOD::Jet * jet = 0;
+    //m_jetCalibration->calibratedCopy(*ijet,jet); //make a calibrated copy, assuming a copy hasn't been made already, alternative is:
+    //m_JetCalibrationTool_handle->applyCalibration(*ijet); // Shallow copy is needed (see links below)
+    //Run other jet tools here...
+    //delete jet;
+  //}
+
+for (auto jetSC : *shallowJets)
+{
   //XAOD::Jet * jet = 0;
-//if (jets->size() <= 3)
-//{
-  //m_JetCalibrationTool_handle->applyCalibration(*jetSC); // Error with this
+if (jets->size() <= 3)
+{
+  // Apply Jet Calibration Tool 
+  m_JetCalibrationTool_handle->applyCalibration(*jetSC); // Error with this
   //delete jet;
-//}
-//}
+}
+}
 
 //--------------
 // shallow copy 

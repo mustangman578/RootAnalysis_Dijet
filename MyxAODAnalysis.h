@@ -18,6 +18,7 @@
 
 // Jet Calibration Tool
 #include <JetCalibTools/IJetCalibrationTool.h>
+#include "JetCalibTools/JetCalibrationTool.h"
 
 // Jet Vertexing Tool
 #include <JetMomentTools/JetVertexTaggerTool.h> //Working on this 

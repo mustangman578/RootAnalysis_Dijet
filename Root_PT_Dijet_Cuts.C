@@ -10,7 +10,7 @@ void Root_PT_Dijet_Cuts()
 
 	// Initialize chain and read input Ntuple
 	TChain *chain = new TChain("analysis");
-	chain->Add("data16_13TeV.00300345.physics_Main.deriv.DAOD_JETM1.r9264_p3083_p3601.root");
+	chain->Add("data16_13TeV.*.physics_Main.deriv.DAOD_JETM1.r9264_p3083_p3601.root");
 	chain->Print();
 
 	// Create Root output file
@@ -306,7 +306,7 @@ void Root_PT_Dijet_Cuts()
 		p2[3] = fitresult4->GetParameter(2);
 		err_sig[3] = fitresult4->GetParError(2);
 
-		/*TF1 *fit5 = new TF1("fit5", "gaus", -new_sig[4]*sigfac, new_sig[4]*sigfac);
+		TF1 *fit5 = new TF1("fit5", "gaus", -new_sig[4]*sigfac, new_sig[4]*sigfac);
         h_j1j2asym_pt_800_1000->Fit("fit5", "R");
         TF1 *fitresult5 = h_j1j2asym_pt_800_1000->GetFunction("fit5");
 		p2[4] = fitresult5->GetParameter(2);
@@ -322,7 +322,7 @@ void Root_PT_Dijet_Cuts()
         h_j1j2asym_pt_1500_2000->Fit("fit7", "R");
         TF1 *fitresult7 = h_j1j2asym_pt_1500_2000->GetFunction("fit7");
 		p2[6] = fitresult7->GetParameter(2);
-        err_sig[6] = fitresult7->GetParError(2);*/
+        err_sig[6] = fitresult7->GetParError(2);
 
 		Double_t sigPT_PT[7];
 		Double_t PT_avg[7];

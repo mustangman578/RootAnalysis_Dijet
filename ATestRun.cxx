@@ -13,10 +13,12 @@ void ATestRun (const std::string& submitDir)
   // containing all the files, not the subdirectories.
 
   // use SampleHandler to scan all of the subdirectories of a directory for particular MC single file:
-  const char* inputFilePath = gSystem->ExpandPathName ("/cluster/home/awhite/ITC_Jet_Ptbalance/");
-  //SH::ScanDir().filePattern("AOD.11182705._000001.pool.root.1").scan(sh,inputFilePath);
-  //SH::scanRucio (sh, "data16_13TeV.*.physics_Main.merge.DAOD_JETM1.*p2689");
-    SH::ScanDir().scan (sh, inputFilePath);
+  //const char* inputFilePath = gSystem->ExpandPathName ("/cluster/home/awhite/ITC_Jet_Ptbalance/"); // Dr. White test 
+  const char* inputFilePath = gSystem->ExpandPathName ("/cluster/home/andrew.myers/release21_rucio_download");
+  //SH::ScanDir().filePattern(".pool.root.1").scan(sh,inputFilePath);
+  //SH::ScanDir().filePattern("AOD.11182705._000001.pool.root.1").scan(sh,inputFilePath); // Dr. White test
+  //SH::scanRucio (sh, "data16_13TeV.*.physics_Main.deriv.DAOD_JETM1.*_p3601");
+  SH::ScanDir().scan (sh, inputFilePath);
 
 
   // set the name of the tree in our files
@@ -32,7 +34,7 @@ void ATestRun (const std::string& submitDir)
   EL::Job job;
   
   job.sampleHandler (sh); // use SampleHandler in this job
-  job.options()->setDouble (EL::Job::optMaxEvents, 500); // for testing purposes, limit to run over the first 500 events only!
+  job.options()->setDouble (EL::Job::optMaxEvents, 100000000); // for testing purposes, limit to run over the first 500 events only!
   EL::OutputStream output  ("ANALYSIS");
   job.outputAdd(output); 
   // add our algorithm to the job
